@@ -469,5 +469,93 @@
 
 <script src="./script.js"></script>
 
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.getElementById("membershipForm");
+    const message = document.getElementById("formMessage");
+
+    if (!form) {
+        console.error("membershipForm wurde nicht gefunden.");
+        return;
+    }
+
+    form.addEventListener("submit", async function (event) {
+
+        // GANZ WICHTIG: normales Formular-Absenden verhindern
+        event.preventDefault();
+        event.stopPropagation();
+
+        const name = document.getElementById("name").value.trim();
+        const id = document.getElementById("id").value.trim();
+        const telefon = document.getElementById("telefon").value.trim();
+
+        const button = form.querySelector('button[type="submit"]');
+
+        if (!name || !id || !telefon) {
+            message.textContent = "❌ Bitte fülle alle Felder aus.";
+            message.className = "form-message error";
+            return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Antrag wird gesendet...";
+
+        message.textContent = "";
+        message.className = "form-message";
+
+        try {
+
+            const response = await fetch("/api/submit-membership", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: name,
+                    id: id,
+                    telefon: telefon
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+
+                message.textContent =
+                    "✅ Dein Mitgliedsantrag wurde erfolgreich übermittelt.";
+
+                message.className = "form-message success";
+
+                form.reset();
+
+            } else {
+
+                message.textContent =
+                    "❌ " + (result.message || "Der Antrag konnte nicht gesendet werden.");
+
+                message.className = "form-message error";
+            }
+
+        } catch (error) {
+
+            console.error("Fehler:", error);
+
+            message.textContent =
+                "❌ Verbindung zum Server fehlgeschlagen.";
+
+            message.className = "form-message error";
+
+        } finally {
+
+            button.disabled = false;
+            button.textContent = "Mitgliedsantrag absenden →";
+        }
+
+    });
+
+});
+</script>
+
 </body>
 </html>
