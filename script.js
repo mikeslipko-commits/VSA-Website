@@ -1,219 +1,89 @@
-```javascript
-document.addEventListener("DOMContentLoaded", () => {
+const mitgliedForm = document.getElementById("mitgliedForm");
+const formMessage = document.getElementById("formMessage");
 
-    // ==============================
-    // NAVBAR BEIM SCROLLEN
-    // ==============================
+if (mitgliedForm) {
 
-    const navbar = document.querySelector(".navbar");
+    mitgliedForm.addEventListener("submit", async function (event) {
 
-    if (navbar) {
-        window.addEventListener("scroll", () => {
-            if (window.scrollY > 30) {
-                navbar.classList.add("scrolled");
-            } else {
-                navbar.classList.remove("scrolled");
-            }
-        });
-    }
+        event.preventDefault();
 
+        const name = document.getElementById("name").value.trim();
+        const id = document.getElementById("id").value.trim();
+        const telefon = document.getElementById("telefon").value.trim();
 
-    // ==============================
-    // ANIMATIONEN BEIM SCROLLEN
-    // ==============================
+        if (!name || !id || !telefon) {
 
-    const animatedElements = document.querySelectorAll(
-        ".value-card, .topic-card, .about-highlight, .program-box, .membership-box"
-    );
+            formMessage.textContent =
+                "Bitte fülle alle Felder aus.";
 
-    if ("IntersectionObserver" in window) {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add("visible");
-                        observer.unobserve(entry.target);
-                    }
-                });
-            },
-            {
-                threshold: 0.1
-            }
-        );
-
-        animatedElements.forEach((element) => {
-            element.classList.add("animate-on-scroll");
-            observer.observe(element);
-        });
-    }
-
-
-    // ==============================
-    // EXTERNE LINKS
-    // ==============================
-
-    const links = document.querySelectorAll("a");
-
-    links.forEach((link) => {
-        const href = link.getAttribute("href");
-
-        if (
-            href &&
-            (href.startsWith("http://") ||
-             href.startsWith("https://"))
-        ) {
-            link.setAttribute("target", "_blank");
-            link.setAttribute("rel", "noopener noreferrer");
+            return;
         }
-    });
+
+        const button = mitgliedForm.querySelector("button");
+
+        button.disabled = true;
+        button.textContent = "Wird gesendet...";
+
+        formMessage.textContent = "";
+
+        try {
+
+            const response = await fetch("/api/mitglied", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    name: name,
+                    id: id,
+                    telefon: telefon
+                })
+
+            });
 
 
-    // ==============================
-    // MITGLIEDSANTRAG
-    // ==============================
+            const data = await response.json();
 
-    const membershipForm = document.getElementById("membershipForm");
-    const formMessage = document.getElementById("formMessage");
 
-    if (membershipForm) {
+            if (!response.ok || !data.success) {
 
-        membershipForm.addEventListener("submit", async (event) => {
+                throw new Error(
+                    data.message ||
+                    "Der Mitgliedsantrag konnte nicht gesendet werden."
+                );
 
-            // Verhindert das Neuladen der Seite
-            event.preventDefault();
+            }
 
-            const nameInput = document.getElementById("name");
-            const idInput = document.getElementById("id");
-            const telefonInput = document.getElementById("telefon");
-            const submitButton = membershipForm.querySelector(
-                'button[type="submit"]'
+
+            formMessage.textContent =
+                "✓ Mitgliedsantrag erfolgreich übermittelt.";
+
+
+            mitgliedForm.reset();
+
+
+        } catch (error) {
+
+            console.error(
+                "Mitgliedsantrag Fehler:",
+                error
             );
 
-            const name = nameInput?.value.trim();
-            const id = idInput?.value.trim();
-            const telefon = telefonInput?.value.trim();
+            formMessage.textContent =
+                error.message ||
+                "Der Antrag konnte nicht gesendet werden.";
 
+        } finally {
 
-            // ==============================
-            // EINGABEN PRÜFEN
-            // ==============================
+            button.disabled = false;
+            button.textContent =
+                "Mitgliedsantrag absenden";
 
-            if (!name || !id || !telefon) {
+        }
 
-                if (formMessage) {
-                    formMessage.textContent =
-                        "Bitte fülle alle Felder aus.";
+    });
 
-                    formMessage.className =
-                        "form-message error";
-                }
-
-                return;
-            }
-
-
-            // ==============================
-            // BUTTON DEAKTIVIEREN
-            // ==============================
-
-            if (submitButton) {
-                submitButton.disabled = true;
-                submitButton.textContent =
-                    "Antrag wird gesendet...";
-            }
-
-
-            // ==============================
-            // ANTRAG AN SERVER SENDEN
-            // ==============================
-
-            try {
-
-                const response = await fetch(
-                    "/api/submit-membership",
-                    {
-                        method: "POST",
-
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-
-                        body: JSON.stringify({
-                            name: name,
-                            id: id,
-                            telefon: telefon
-                        })
-                    }
-                );
-
-
-                const result = await response.json();
-
-
-                // ==============================
-                // ERFOLGREICH
-                // ==============================
-
-                if (response.ok && result.success) {
-
-                    if (formMessage) {
-                        formMessage.textContent =
-                            "✅ Dein Mitgliedsantrag wurde erfolgreich übermittelt.";
-
-                        formMessage.className =
-                            "form-message success";
-                    }
-
-                    membershipForm.reset();
-
-                } else {
-
-                    // ==============================
-                    // FEHLER VOM SERVER
-                    // ==============================
-
-                    if (formMessage) {
-                        formMessage.textContent =
-                            "❌ " +
-                            (result.message ||
-                            "Der Antrag konnte nicht gesendet werden.");
-
-                        formMessage.className =
-                            "form-message error";
-                    }
-                }
-
-
-            } catch (error) {
-
-                console.error(
-                    "Fehler beim Senden des Mitgliedsantrags:",
-                    error
-                );
-
-                if (formMessage) {
-                    formMessage.textContent =
-                        "❌ Der Antrag konnte nicht gesendet werden. Bitte versuche es später erneut.";
-
-                    formMessage.className =
-                        "form-message error";
-                }
-
-            } finally {
-
-                // ==============================
-                // BUTTON WIEDER AKTIVIEREN
-                // ==============================
-
-                if (submitButton) {
-                    submitButton.disabled = false;
-                    submitButton.textContent =
-                        "Mitgliedsantrag absenden →";
-                }
-            }
-
-        });
-    }
-
-});
-```
+}
