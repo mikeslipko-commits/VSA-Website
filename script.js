@@ -12,10 +12,8 @@ if (mitgliedForm) {
         const telefon = document.getElementById("telefon").value.trim();
 
         if (!name || !id || !telefon) {
-
             formMessage.textContent =
                 "Bitte fülle alle Felder aus.";
-
             return;
         }
 
@@ -28,42 +26,39 @@ if (mitgliedForm) {
 
         try {
 
-            const response = await fetch("/api/mitglied", {
-
+            const response = await fetch("/api/submit-membership", {
                 method: "POST",
-
                 headers: {
                     "Content-Type": "application/json"
                 },
-
                 body: JSON.stringify({
                     name: name,
                     id: id,
                     telefon: telefon
                 })
-
             });
 
+            const contentType = response.headers.get("content-type") || "";
+
+            if (!contentType.includes("application/json")) {
+                throw new Error(
+                    "Die API konnte nicht erreicht werden."
+                );
+            }
 
             const data = await response.json();
 
-
             if (!response.ok || !data.success) {
-
                 throw new Error(
                     data.message ||
                     "Der Mitgliedsantrag konnte nicht gesendet werden."
                 );
-
             }
-
 
             formMessage.textContent =
                 "✓ Mitgliedsantrag erfolgreich übermittelt.";
 
-
             mitgliedForm.reset();
-
 
         } catch (error) {
 
