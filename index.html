@@ -67,6 +67,7 @@
                     </p>
 
                     <div class="hero-buttons">
+
                         <a href="#programm" class="button button-gold">
                             Unser Programm
                         </a>
@@ -76,6 +77,7 @@
                            class="button button-outline">
                             Discord beitreten
                         </a>
+
                     </div>
 
                 </div>
@@ -296,7 +298,10 @@
                 <div class="program-list">
 
                     <div class="program-item">
-                        <div class="program-number">01</div>
+
+                        <div class="program-number">
+                            01
+                        </div>
 
                         <div>
                             <h3>Mehr Sicherheit auf den Straßen</h3>
@@ -306,11 +311,15 @@
                                 Probleme reagieren können.
                             </p>
                         </div>
+
                     </div>
 
 
                     <div class="program-item">
-                        <div class="program-number">02</div>
+
+                        <div class="program-number">
+                            02
+                        </div>
 
                         <div>
                             <h3>Faire und klare Gesetze</h3>
@@ -319,11 +328,15 @@
                                 und sich darauf verlassen können.
                             </p>
                         </div>
+
                     </div>
 
 
                     <div class="program-item">
-                        <div class="program-number">03</div>
+
+                        <div class="program-number">
+                            03
+                        </div>
 
                         <div>
                             <h3>Wirtschaft stärken</h3>
@@ -332,11 +345,15 @@
                                 gute Voraussetzungen für ihre Arbeit haben.
                             </p>
                         </div>
+
                     </div>
 
 
                     <div class="program-item">
-                        <div class="program-number">04</div>
+
+                        <div class="program-number">
+                            04
+                        </div>
 
                         <div>
                             <h3>Bürger stärker beteiligen</h3>
@@ -345,6 +362,7 @@
                                 wichtigen Entscheidungen berücksichtigt werden.
                             </p>
                         </div>
+
                     </div>
 
                 </div>
@@ -441,32 +459,107 @@
         </section>
 
 
-        <!-- Mitglied -->
+        <!-- Mitglied werden -->
         <section id="mitglied" class="join-section">
 
             <div class="container">
 
                 <div class="join-box">
 
-                    <div>
-                        <span>VOLKSBÜNDNIS SAN ANDREAS</span>
+                    <div class="join-text">
+
+                        <span>MITGLIED WERDEN</span>
 
                         <h2>
-                            Du willst etwas
-                            verändern?
+                            Werde Teil
+                            <br>
+                            der VSA.
                         </h2>
 
                         <p>
-                            Dann werde Teil der VSA und bring dich
-                            aktiv in unsere Partei ein.
+                            Du möchtest dich aktiv für San Andreas
+                            einsetzen? Dann fülle einfach den
+                            Mitgliedsantrag aus.
                         </p>
+
+                        <p>
+                            Nach dem Absenden werden deine Angaben
+                            automatisch in unsere VSA-Mitgliederliste
+                            eingetragen.
+                        </p>
+
                     </div>
 
-                    <a href="https://discord.gg/KZX3hNKxK"
-                       target="_blank"
-                       class="button button-gold">
-                        Jetzt beitreten
-                    </a>
+
+                    <form id="mitgliedForm" class="member-form">
+
+                        <div class="input-group">
+
+                            <label for="name">
+                                Name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="name"
+                                name="name"
+                                placeholder="Dein Name"
+                                autocomplete="name"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="input-group">
+
+                            <label for="id">
+                                Spieler-ID
+                            </label>
+
+                            <input
+                                type="text"
+                                id="id"
+                                name="id"
+                                placeholder="Deine ID"
+                                inputmode="numeric"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="input-group">
+
+                            <label for="telefon">
+                                Telefonnummer
+                            </label>
+
+                            <input
+                                type="tel"
+                                id="telefon"
+                                name="telefon"
+                                placeholder="Deine Telefonnummer"
+                                autocomplete="tel"
+                                required
+                            >
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="button button-gold">
+                            Mitgliedsantrag absenden
+                        </button>
+
+
+                        <p
+                            id="formMessage"
+                            class="form-message">
+                        </p>
+
+                    </form>
 
                 </div>
 
@@ -485,12 +578,16 @@
             <div class="footer-brand">
 
                 <div class="logo">
-                    <div class="logo-vsa">VSA</div>
+
+                    <div class="logo-vsa">
+                        VSA
+                    </div>
 
                     <div class="logo-name">
                         <span>VOLKSBÜNDNIS</span>
                         <small>SAN ANDREAS</small>
                     </div>
+
                 </div>
 
                 <p>
@@ -503,25 +600,46 @@
             <div class="footer-links">
 
                 <div>
+
                     <strong>Navigation</strong>
 
-                    <a href="#start">Start</a>
-                    <a href="#partei">Die Partei</a>
-                    <a href="#themen">Themen</a>
-                    <a href="#programm">Programm</a>
+                    <a href="#start">
+                        Start
+                    </a>
+
+                    <a href="#partei">
+                        Die Partei
+                    </a>
+
+                    <a href="#themen">
+                        Themen
+                    </a>
+
+                    <a href="#programm">
+                        Programm
+                    </a>
+
                 </div>
 
 
                 <div>
+
                     <strong>Community</strong>
 
-                    <a href="#news">Aktuelles</a>
-                    <a href="#mitglied">Mitglied werden</a>
+                    <a href="#news">
+                        Aktuelles
+                    </a>
 
-                    <a href="https://discord.gg/KZX3hNKxK"
-                       target="_blank">
+                    <a href="#mitglied">
+                        Mitglied werden
+                    </a>
+
+                    <a
+                        href="https://discord.gg/KZX3hNKxK"
+                        target="_blank">
                         Discord
                     </a>
+
                 </div>
 
             </div>
