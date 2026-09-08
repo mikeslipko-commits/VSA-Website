@@ -20,7 +20,6 @@ export default async function handler(req, res) {
             });
         }
 
-        // Datenbank-Verbindung
         const databaseUrl =
             process.env.DATABASE_URL ||
             process.env.Database_url ||
@@ -35,7 +34,6 @@ export default async function handler(req, res) {
 
         const sql = neon(databaseUrl);
 
-        // Discord Webhook
         const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
 
         if (!webhookUrl) {
@@ -45,10 +43,7 @@ export default async function handler(req, res) {
             });
         }
 
-        // ==========================================
-        // TABELLEN ERSTELLEN
-        // ==========================================
-
+        // Tabellen erstellen
         await sql`
             CREATE TABLE IF NOT EXISTS vsa_mitglieder (
                 nummer SERIAL PRIMARY KEY,
@@ -66,11 +61,7 @@ export default async function handler(req, res) {
             )
         `;
 
-
-        // ==========================================
-        // MITGLIED SPEICHERN
-        // ==========================================
-
+        // Neues Mitglied speichern
         const result = await sql`
             INSERT INTO vsa_mitglieder
             (name, spieler_id, telefon)
@@ -81,22 +72,14 @@ export default async function handler(req, res) {
 
         const neueNummer = result[0].nummer;
 
-
-        // ==========================================
-        // ALLE MITGLIEDER LADEN
-        // ==========================================
-
+        // Alle Mitglieder laden
         const members = await sql`
             SELECT nummer, name, spieler_id, telefon
             FROM vsa_mitglieder
             ORDER BY nummer ASC
         `;
 
-
-        // ==========================================
-        // DISCORD-NACHRICHT ERSTELLEN
-        // ==========================================
-
+        // Discord-Nachricht aufbauen
         let mitgliederListe =
             "📋 **AKTUELLE VSA-MITGLIEDER**\n\n";
 
@@ -113,11 +96,7 @@ export default async function handler(req, res) {
             `👥 **Mitglieder insgesamt: ${members.length}**\n` +
             `🏛️ **Volksbündnis San Andreas**`;
 
-
-        // ==========================================
-        // EXISTIERENDE DISCORD-NACHRICHT SUCHEN
-        // ==========================================
-
+        // Gespeicherte Discord-Nachrichten-ID laden
         const settings = await sql`
             SELECT wert
             FROM vsa_einstellungen
@@ -131,9 +110,10 @@ export default async function handler(req, res) {
             discordMessageId = settings[0].wert;
         }
 
+        let discordMessageCreated = false;
 
         // ==========================================
-        // ERSTE DISCORD-NACHRICHT
+        // KEINE NACHRICHT VORHANDEN
         // ==========================================
 
         if (!discordMessageId) {
@@ -142,11 +122,9 @@ export default async function handler(req, res) {
                 `${webhookUrl}?wait=true`,
                 {
                     method: "POST",
-
                     headers: {
                         "Content-Type": "application/json"
                     },
-
                     body: JSON.stringify({
                         username: "VSA Mitglieder",
                         content: mitgliederListe
@@ -155,58 +133,85 @@ export default async function handler(req, res) {
             );
 
             if (!discordResponse.ok) {
-
-                const errorText =
-                    await discordResponse.text();
-
-                console.error(
-                    "Discord Fehler:",
-                    errorText
-                );
+                const errorText = await discordResponse.text();
+                console.error("Discord Fehler:", errorText);
 
                 throw new Error(
                     "Discord-Nachricht konnte nicht erstellt werden."
                 );
             }
 
-            const discordData =
-                await discordResponse.json();
+            const discordData = await discordResponse.json();
 
             discordMessageId = discordData.id;
-
-
-            await sql`
-                INSERT INTO vsa_einstellungen
-                (schluessel, wert)
-                VALUES
-                ('discord_message_id', ${discordMessageId})
-            `;
+            discordMessageCreated = true;
 
         }
 
-
         // ==========================================
-        // DISCORD-NACHRICHT AKTUALISIEREN
+        // VORHANDENE NACHRICHT AKTUALISIEREN
         // ==========================================
 
-        else {
+        if (!discordMessageCreated) {
 
             const discordResponse = await fetch(
                 `${webhookUrl}/messages/${discordMessageId}`,
                 {
                     method: "PATCH",
-
                     headers: {
                         "Content-Type": "application/json"
                     },
-
                     body: JSON.stringify({
                         content: mitgliederListe
                     })
                 }
             );
 
-            if (!discordResponse.ok) {
+            // Nachricht wurde gelöscht
+            if (discordResponse.status === 404) {
+
+                console.log(
+                    "Alte Discord-Nachricht existiert nicht mehr. Erstelle neue Nachricht."
+                );
+
+                const newDiscordResponse = await fetch(
+                    `${webhookUrl}?wait=true`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            username: "VSA Mitglieder",
+                            content: mitgliederListe
+                        })
+                    }
+                );
+
+                if (!newDiscordResponse.ok) {
+
+                    const errorText =
+                        await newDiscordResponse.text();
+
+                    console.error(
+                        "Discord Fehler beim Neuerstellen:",
+                        errorText
+                    );
+
+                    throw new Error(
+                        "Neue Discord-Nachricht konnte nicht erstellt werden."
+                    );
+                }
+
+                const newDiscordData =
+                    await newDiscordResponse.json();
+
+                discordMessageId = newDiscordData.id;
+
+            }
+
+            // Sonstiger Discord-Fehler
+            else if (!discordResponse.ok) {
 
                 const errorText =
                     await discordResponse.text();
@@ -222,17 +227,22 @@ export default async function handler(req, res) {
             }
         }
 
+        // Neue Nachrichten-ID speichern
+        await sql`
+            INSERT INTO vsa_einstellungen
+            (schluessel, wert)
+            VALUES
+            ('discord_message_id', ${discordMessageId})
+            ON CONFLICT (schluessel)
+            DO UPDATE SET wert = EXCLUDED.wert
+        `;
 
-        // ==========================================
-        // ERFOLG
-        // ==========================================
-
+        // Erfolg
         return res.status(200).json({
             success: true,
             message: "Mitgliedsantrag erfolgreich übermittelt.",
             nummer: neueNummer
         });
-
 
     } catch (error) {
 
