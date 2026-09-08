@@ -2,7 +2,6 @@
 import { sql } from "@vercel/postgres";
 
 export default async function handler(req, res) {
-    // Nur POST erlauben
     if (req.method !== "POST") {
         return res.status(405).json({
             success: false,
@@ -13,7 +12,6 @@ export default async function handler(req, res) {
     try {
         const { name, id, telefon } = req.body || {};
 
-        // Eingaben prüfen
         if (!name || !id || !telefon) {
             return res.status(400).json({
                 success: false,
@@ -30,7 +28,7 @@ export default async function handler(req, res) {
             });
         }
 
-        // Tabelle automatisch erstellen
+        // Mitglieder-Tabelle erstellen
         await sql`
             CREATE TABLE IF NOT EXISTS vsa_mitglieder (
                 nummer SERIAL PRIMARY KEY,
@@ -38,6 +36,14 @@ export default async function handler(req, res) {
                 spieler_id TEXT NOT NULL,
                 telefon TEXT NOT NULL,
                 erstellt_am TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `;
+
+        // Einstellungen-Tabelle erstellen
+        await sql`
+            CREATE TABLE IF NOT EXISTS vsa_einstellungen (
+                schluessel TEXT PRIMARY KEY,
+                wert TEXT NOT NULL
             )
         `;
 
@@ -52,7 +58,7 @@ export default async function handler(req, res) {
 
         const neueNummer = result.rows[0].nummer;
 
-        // Alle Mitglieder aus der Datenbank laden
+        // Alle Mitglieder laden
         const membersResult = await sql`
             SELECT nummer, name, spieler_id, telefon
             FROM vsa_mitglieder
@@ -62,13 +68,12 @@ export default async function handler(req, res) {
         const members = membersResult.rows;
 
         // Discord-Liste erstellen
-        let mitgliederListe =
-            "📋 **AKTUELLE VSA-MITGLIEDER**\n\n";
+        let mitgliederListe = "📋 **AKTUELLE VSA-MITGLIEDER**\n\n";
 
         members.forEach((member) => {
             mitgliederListe +=
-                `**#${String(member.nummer).padStart(3, "0")}** ` +
-                `— ${member.name} | ID: ${member.spieler_id} | 📞 ${member.telefon}\n`;
+                `**#${String(member.nummer).padStart(3, "0")}** — ` +
+                `${member.name} | ID: ${member.spieler_id} | 📞 ${member.telefon}\n`;
         });
 
         mitgliederListe +=
@@ -76,7 +81,7 @@ export default async function handler(req, res) {
             `👥 **Mitglieder insgesamt: ${members.length}**\n` +
             `🏛️ **Volksbündnis San Andreas**`;
 
-        // Prüfen, ob bereits eine Discord-Nachricht gespeichert wurde
+        // Prüfen, ob bereits eine Discord-Nachricht existiert
         const messageResult = await sql`
             SELECT wert
             FROM vsa_einstellungen
@@ -90,7 +95,7 @@ export default async function handler(req, res) {
             discordMessageId = messageResult.rows[0].wert;
         }
 
-        // Wenn noch keine Discord-Nachricht existiert:
+        // Erste Discord-Nachricht erstellen
         if (!discordMessageId) {
 
             const discordResponse = await fetch(
@@ -120,13 +125,11 @@ export default async function handler(req, res) {
                 (schluessel, wert)
                 VALUES
                 ('discord_message_id', ${discordMessageId})
-                ON CONFLICT (schluessel)
-                DO UPDATE SET wert = ${discordMessageId}
             `;
 
         } else {
 
-            // Bereits vorhandene Nachricht aktualisieren
+            // Bestehende Discord-Nachricht aktualisieren
             const discordResponse = await fetch(
                 `${webhookUrl}/messages/${discordMessageId}`,
                 {
