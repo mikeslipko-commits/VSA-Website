@@ -1,7 +1,7 @@
-```javascript
-import { sql } from "@vercel/postgres";
+import { neon } from "@neondatabase/serverless";
 
 export default async function handler(req, res) {
+
     if (req.method !== "POST") {
         return res.status(405).json({
             success: false,
@@ -10,6 +10,7 @@ export default async function handler(req, res) {
     }
 
     try {
+
         const { name, id, telefon } = req.body || {};
 
         if (!name || !id || !telefon) {
@@ -19,6 +20,22 @@ export default async function handler(req, res) {
             });
         }
 
+        // Datenbank-Verbindung
+        const databaseUrl =
+            process.env.DATABASE_URL ||
+            process.env.Database_url ||
+            process.env.postgres_url;
+
+        if (!databaseUrl) {
+            return res.status(500).json({
+                success: false,
+                message: "Datenbank ist nicht eingerichtet."
+            });
+        }
+
+        const sql = neon(databaseUrl);
+
+        // Discord Webhook
         const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
 
         if (!webhookUrl) {
@@ -28,7 +45,10 @@ export default async function handler(req, res) {
             });
         }
 
-        // Mitglieder-Tabelle erstellen
+        // ==========================================
+        // TABELLEN ERSTELLEN
+        // ==========================================
+
         await sql`
             CREATE TABLE IF NOT EXISTS vsa_mitglieder (
                 nummer SERIAL PRIMARY KEY,
@@ -39,7 +59,6 @@ export default async function handler(req, res) {
             )
         `;
 
-        // Einstellungen-Tabelle erstellen
         await sql`
             CREATE TABLE IF NOT EXISTS vsa_einstellungen (
                 schluessel TEXT PRIMARY KEY,
@@ -47,7 +66,11 @@ export default async function handler(req, res) {
             )
         `;
 
-        // Neues Mitglied speichern
+
+        // ==========================================
+        // MITGLIED SPEICHERN
+        // ==========================================
+
         const result = await sql`
             INSERT INTO vsa_mitglieder
             (name, spieler_id, telefon)
@@ -56,24 +79,33 @@ export default async function handler(req, res) {
             RETURNING nummer
         `;
 
-        const neueNummer = result.rows[0].nummer;
+        const neueNummer = result[0].nummer;
 
-        // Alle Mitglieder laden
-        const membersResult = await sql`
+
+        // ==========================================
+        // ALLE MITGLIEDER LADEN
+        // ==========================================
+
+        const members = await sql`
             SELECT nummer, name, spieler_id, telefon
             FROM vsa_mitglieder
             ORDER BY nummer ASC
         `;
 
-        const members = membersResult.rows;
 
-        // Discord-Liste erstellen
-        let mitgliederListe = "📋 **AKTUELLE VSA-MITGLIEDER**\n\n";
+        // ==========================================
+        // DISCORD-NACHRICHT ERSTELLEN
+        // ==========================================
+
+        let mitgliederListe =
+            "📋 **AKTUELLE VSA-MITGLIEDER**\n\n";
 
         members.forEach((member) => {
+
             mitgliederListe +=
                 `**#${String(member.nummer).padStart(3, "0")}** — ` +
                 `${member.name} | ID: ${member.spieler_id} | 📞 ${member.telefon}\n`;
+
         });
 
         mitgliederListe +=
@@ -81,8 +113,12 @@ export default async function handler(req, res) {
             `👥 **Mitglieder insgesamt: ${members.length}**\n` +
             `🏛️ **Volksbündnis San Andreas**`;
 
-        // Prüfen, ob bereits eine Discord-Nachricht existiert
-        const messageResult = await sql`
+
+        // ==========================================
+        // EXISTIERENDE DISCORD-NACHRICHT SUCHEN
+        // ==========================================
+
+        const settings = await sql`
             SELECT wert
             FROM vsa_einstellungen
             WHERE schluessel = 'discord_message_id'
@@ -91,20 +127,26 @@ export default async function handler(req, res) {
 
         let discordMessageId = null;
 
-        if (messageResult.rows.length > 0) {
-            discordMessageId = messageResult.rows[0].wert;
+        if (settings.length > 0) {
+            discordMessageId = settings[0].wert;
         }
 
-        // Erste Discord-Nachricht erstellen
+
+        // ==========================================
+        // ERSTE DISCORD-NACHRICHT
+        // ==========================================
+
         if (!discordMessageId) {
 
             const discordResponse = await fetch(
                 `${webhookUrl}?wait=true`,
                 {
                     method: "POST",
+
                     headers: {
                         "Content-Type": "application/json"
                     },
+
                     body: JSON.stringify({
                         username: "VSA Mitglieder",
                         content: mitgliederListe
@@ -113,12 +155,25 @@ export default async function handler(req, res) {
             );
 
             if (!discordResponse.ok) {
-                throw new Error("Discord-Nachricht konnte nicht erstellt werden.");
+
+                const errorText =
+                    await discordResponse.text();
+
+                console.error(
+                    "Discord Fehler:",
+                    errorText
+                );
+
+                throw new Error(
+                    "Discord-Nachricht konnte nicht erstellt werden."
+                );
             }
 
-            const discordData = await discordResponse.json();
+            const discordData =
+                await discordResponse.json();
 
             discordMessageId = discordData.id;
+
 
             await sql`
                 INSERT INTO vsa_einstellungen
@@ -127,16 +182,24 @@ export default async function handler(req, res) {
                 ('discord_message_id', ${discordMessageId})
             `;
 
-        } else {
+        }
 
-            // Bestehende Discord-Nachricht aktualisieren
+
+        // ==========================================
+        // DISCORD-NACHRICHT AKTUALISIEREN
+        // ==========================================
+
+        else {
+
             const discordResponse = await fetch(
                 `${webhookUrl}/messages/${discordMessageId}`,
                 {
                     method: "PATCH",
+
                     headers: {
                         "Content-Type": "application/json"
                     },
+
                     body: JSON.stringify({
                         content: mitgliederListe
                     })
@@ -144,9 +207,25 @@ export default async function handler(req, res) {
             );
 
             if (!discordResponse.ok) {
-                throw new Error("Discord-Nachricht konnte nicht aktualisiert werden.");
+
+                const errorText =
+                    await discordResponse.text();
+
+                console.error(
+                    "Discord Update Fehler:",
+                    errorText
+                );
+
+                throw new Error(
+                    "Discord-Nachricht konnte nicht aktualisiert werden."
+                );
             }
         }
+
+
+        // ==========================================
+        // ERFOLG
+        // ==========================================
 
         return res.status(200).json({
             success: true,
@@ -154,13 +233,19 @@ export default async function handler(req, res) {
             nummer: neueNummer
         });
 
+
     } catch (error) {
-        console.error("Mitgliedsantrag Fehler:", error);
+
+        console.error(
+            "Mitgliedsantrag Fehler:",
+            error
+        );
 
         return res.status(500).json({
             success: false,
-            message: "Der Mitgliedsantrag konnte nicht verarbeitet werden."
+            message:
+                error.message ||
+                "Der Mitgliedsantrag konnte nicht verarbeitet werden."
         });
     }
 }
-```
