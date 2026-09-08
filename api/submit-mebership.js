@@ -1,6 +1,8 @@
 ```javascript
+import { sql } from "@vercel/postgres";
+
 export default async function handler(req, res) {
-    // Nur POST-Anfragen erlauben
+    // Nur POST erlauben
     if (req.method !== "POST") {
         return res.status(405).json({
             success: false,
@@ -11,63 +13,150 @@ export default async function handler(req, res) {
     try {
         const { name, id, telefon } = req.body || {};
 
-        // Prüfen, ob alle Angaben vorhanden sind
+        // Eingaben prüfen
         if (!name || !id || !telefon) {
             return res.status(400).json({
                 success: false,
-                message: "Name, ID und Telefonnummer sind erforderlich."
+                message: "Bitte fülle alle Felder aus."
             });
         }
 
-        // Discord Webhook aus der Vercel-Umgebungsvariable laden
         const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
 
         if (!webhookUrl) {
             return res.status(500).json({
                 success: false,
-                message: "Discord-Webhook ist noch nicht eingerichtet."
+                message: "Discord-Webhook ist nicht eingerichtet."
             });
         }
 
-        // Nachricht für Discord
-        const discordMessage = {
-            username: "VSA Mitglieder",
-            content:
-                "📋 **Neuer Parteibeitritt**\n\n" +
-                `👤 **Name:** ${name}\n` +
-                `🪪 **ID:** ${id}\n` +
-                `📞 **Telefon:** ${telefon}\n\n` +
-                "━━━━━━━━━━━━━━━━━━━━\n" +
-                "Volksbündnis San Andreas"
-        };
+        // Tabelle automatisch erstellen
+        await sql`
+            CREATE TABLE IF NOT EXISTS vsa_mitglieder (
+                nummer SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                spieler_id TEXT NOT NULL,
+                telefon TEXT NOT NULL,
+                erstellt_am TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `;
 
-        // Nachricht an Discord senden
-        const discordResponse = await fetch(webhookUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(discordMessage)
+        // Neues Mitglied speichern
+        const result = await sql`
+            INSERT INTO vsa_mitglieder
+            (name, spieler_id, telefon)
+            VALUES
+            (${name}, ${String(id)}, ${telefon})
+            RETURNING nummer
+        `;
+
+        const neueNummer = result.rows[0].nummer;
+
+        // Alle Mitglieder aus der Datenbank laden
+        const membersResult = await sql`
+            SELECT nummer, name, spieler_id, telefon
+            FROM vsa_mitglieder
+            ORDER BY nummer ASC
+        `;
+
+        const members = membersResult.rows;
+
+        // Discord-Liste erstellen
+        let mitgliederListe =
+            "📋 **AKTUELLE VSA-MITGLIEDER**\n\n";
+
+        members.forEach((member) => {
+            mitgliederListe +=
+                `**#${String(member.nummer).padStart(3, "0")}** ` +
+                `— ${member.name} | ID: ${member.spieler_id} | 📞 ${member.telefon}\n`;
         });
 
-        if (!discordResponse.ok) {
-            return res.status(500).json({
-                success: false,
-                message: "Der Antrag konnte nicht an Discord gesendet werden."
-            });
+        mitgliederListe +=
+            `\n━━━━━━━━━━━━━━━━━━━━\n` +
+            `👥 **Mitglieder insgesamt: ${members.length}**\n` +
+            `🏛️ **Volksbündnis San Andreas**`;
+
+        // Prüfen, ob bereits eine Discord-Nachricht gespeichert wurde
+        const messageResult = await sql`
+            SELECT wert
+            FROM vsa_einstellungen
+            WHERE schluessel = 'discord_message_id'
+            LIMIT 1
+        `;
+
+        let discordMessageId = null;
+
+        if (messageResult.rows.length > 0) {
+            discordMessageId = messageResult.rows[0].wert;
+        }
+
+        // Wenn noch keine Discord-Nachricht existiert:
+        if (!discordMessageId) {
+
+            const discordResponse = await fetch(
+                `${webhookUrl}?wait=true`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        username: "VSA Mitglieder",
+                        content: mitgliederListe
+                    })
+                }
+            );
+
+            if (!discordResponse.ok) {
+                throw new Error("Discord-Nachricht konnte nicht erstellt werden.");
+            }
+
+            const discordData = await discordResponse.json();
+
+            discordMessageId = discordData.id;
+
+            await sql`
+                INSERT INTO vsa_einstellungen
+                (schluessel, wert)
+                VALUES
+                ('discord_message_id', ${discordMessageId})
+                ON CONFLICT (schluessel)
+                DO UPDATE SET wert = ${discordMessageId}
+            `;
+
+        } else {
+
+            // Bereits vorhandene Nachricht aktualisieren
+            const discordResponse = await fetch(
+                `${webhookUrl}/messages/${discordMessageId}`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        content: mitgliederListe
+                    })
+                }
+            );
+
+            if (!discordResponse.ok) {
+                throw new Error("Discord-Nachricht konnte nicht aktualisiert werden.");
+            }
         }
 
         return res.status(200).json({
             success: true,
-            message: "Mitgliedsantrag erfolgreich übermittelt."
+            message: "Mitgliedsantrag erfolgreich übermittelt.",
+            nummer: neueNummer
         });
 
     } catch (error) {
-        console.error("Fehler beim Mitgliedsantrag:", error);
+        console.error("Mitgliedsantrag Fehler:", error);
 
         return res.status(500).json({
             success: false,
-            message: "Interner Serverfehler."
+            message: "Der Mitgliedsantrag konnte nicht verarbeitet werden."
         });
     }
 }
