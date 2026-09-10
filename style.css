@@ -717,3 +717,77 @@ nav a:hover {
     padding: 20px 10px !important;
   }
 }
+/* --- GEZIELTE REPARATUR FÜR HELDEN-BEREICH & VORTEILE --- */
+@media (max-width: 768px) {
+
+  /* Fix für den Startseiten-Bereich (Bildschirm 1) */
+  /* Macht aus dem zweispaltigen Raster eine saubere, einzelne Spalte */
+  .hero-content, 
+  .hero-grid, 
+  .hero-section {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    padding: 0 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Zwingt die schwarze VSA-Visitenkarte, sich unter den Text zu setzen */
+  .vsa-card, 
+  .hero-right, 
+  .card-display {
+    width: 100% !important;
+    max-width: 320px !important;
+    position: relative !important;
+    right: auto !important;
+    left: auto !important;
+    margin: 30px auto 0 auto !important; /* Erzeugt Abstand nach oben */
+    transform: none !important;
+  }
+
+
+  /* Fix für die Sektion "Wofür steht die VSA?" (Bildschirm 2) */
+  /* Holt das rechte Raster ("Sicherheit", "Wirtschaft") komplett unter den Haupttext */
+  .features-section, 
+  .party-intro-grid, 
+  .about-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+
+  /* Setzt den linken Textbereich auf volle Breite */
+  .intro-text-block, 
+  .about-left-text {
+    width: 100% !important;
+    max-width: 100% !important;
+    text-align: center !important;
+    margin-bottom: 40px !important;
+  }
+
+  /* Zwingt die kleinen Infokacheln (Sicherheit, Wirtschaft etc.) in eine saubere Reihe untereinander */
+  .features-grid, 
+  .values-grid, 
+  .about-right-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 25px !important;
+  }
+
+  /* Richtet jede einzelne Kachel mittig aus, damit nichts rechts rausrutscht */
+  .feature-item, 
+  .value-box, 
+  .about-card {
+    width: 100% !important;
+    max-width: 300px !important;
+    text-align: center !important;
+    margin: 0 auto !important;
+    border-left: none !important; /* Entfernt Trennstriche, falls vorhanden */
+    padding: 10px !important;
+  }
+}
