@@ -576,11 +576,12 @@ nav a:hover {
 
 /* 1. Macht die Beschriftungen ÜBER den Boxen weiß */
 .join-box label {
-    color: #1a1a1a !important;
+    color: #ffffff !important;
 }
 
 /* 2. Macht die Platzhalter-Texte INDEN Boxen weiß */
-.join-box input::placeholder {
+.join-box input {color: #000000 !important;
+                }
     color: rgba(255, 255, 255, 0.7) !important;
     opacity: 1; /* Sorgt dafür, dass der Browser das Weiß nicht automatisch blasser macht */
 }
