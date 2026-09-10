@@ -576,7 +576,7 @@ nav a:hover {
 
 /* 1. Macht die Beschriftungen ÜBER den Boxen weiß */
 .join-box label {
-    color: #ffffff !important;
+    color: #1a1a1a !important;
 }
 
 /* 2. Macht die Platzhalter-Texte INDEN Boxen weiß */
