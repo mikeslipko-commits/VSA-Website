@@ -595,3 +595,56 @@ nav a:hover {
 .join-text p {
     color: #e0e0e0 !important; /* Ein edles, leicht mattes Weiß für den langen Text */
 }
+/*--- SMARTPHONE OPTIMIRUNG---*/
+@media (max-width: 768px) {
+
+/* Sortiert Header-Logo und Menü untereinander */
+.header .container {
+    flex-direction: colum !important;
+    align-itmes: center !important;
+    gap: 15px !important;
+}
+
+    /*Richtet die Navigations-Links zentriert aus */
+    nav{
+        display: flex !important;
+        flex-discretion: row !important;
+        justify-content: center !importan;
+        gap: 12px !important;
+    }
+
+    /* verkleinert die riesige Überschrift "SAN ANDREAS NEU DENKEN" */
+    h1, .hero-title, [class*="title"] {
+        front-size: 2.2rem !important;
+        line-height: 1.2 !important;
+        text-align: center !important;
+    }
+
+    /* Erzwingt, dass Text und die infokarte untereinander fließen*/
+    main, .container, .hero, .main-content {
+        flex-direction: colum !important;
+        align-items: center !important;
+        text-align: center !important;
+    }
+
+    /* Setzt die Infokarte (VSA DE03) auf volle Breite */
+    .vsa-card, [class*="card"] {
+        width: 100% !important;
+        max-width: 340px !important;
+        margin: 20px auto !important;
+    }
+
+    /* Die Buttons ("Unser Programm" / "Discord beitreten") untereinander anordnen*/
+    .button-group, .hero-buttons, [class*="button"]
+    display: flex !important;
+    flex-direction: colum !important;
+    width: 100% 1important;
+    gap: 12px !important;
+}
+
+.button-group a, .hero-buttons a {
+    width: 100% !important;
+    text-algin: center !important;
+ }
+}
+
