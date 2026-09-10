@@ -595,56 +595,125 @@ nav a:hover {
 .join-text p {
     color: #e0e0e0 !important; /* Ein edles, leicht mattes Weiß für den langen Text */
 }
-/*--- SMARTPHONE OPTIMIRUNG---*/
+/* ==========================================================================
+   VOLLSTÄNDIGE SMARTPHONE-OPTIMIERUNG (MAX-WIDTH: 768PX)
+   ========================================================================== */
 @media (max-width: 768px) {
 
-/* Sortiert Header-Logo und Menü untereinander */
-.header .container {
-    flex-direction: colum !important;
-    align-itmes: center !important;
+  /* 1. ALLGEMEINE ANPASSUNGEN */
+  body, html {
+    overflow-x: hidden !important; /* Verhindert seitliches Scrollen auf Handys */
+  }
+
+  /* 2. HEADER & NAVIGATION */
+  .header .container {
+    flex-direction: column !important;
+    align-items: center !important;
     gap: 15px !important;
-}
+    padding: 15px 10px !important;
+  }
 
-    /*Richtet die Navigations-Links zentriert aus */
-    nav{
-        display: flex !important;
-        flex-discretion: row !important;
-        justify-content: center !importan;
-        gap: 12px !important;
-    }
-
-    /* verkleinert die riesige Überschrift "SAN ANDREAS NEU DENKEN" */
-    h1, .hero-title, [class*="title"] {
-        front-size: 2.2rem !important;
-        line-height: 1.2 !important;
-        text-align: center !important;
-    }
-
-    /* Erzwingt, dass Text und die infokarte untereinander fließen*/
-    main, .container, .hero, .main-content {
-        flex-direction: colum !important;
-        align-items: center !important;
-        text-align: center !important;
-    }
-
-    /* Setzt die Infokarte (VSA DE03) auf volle Breite */
-    .vsa-card, [class*="card"] {
-        width: 100% !important;
-        max-width: 340px !important;
-        margin: 20px auto !important;
-    }
-
-    /* Die Buttons ("Unser Programm" / "Discord beitreten") untereinander anordnen*/
-    .button-group, .hero-buttons, [class*="button"]
+  nav {
     display: flex !important;
-    flex-direction: colum !important;
-    width: 100% 1important;
-    gap: 12px !important;
-}
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 10px 15px !important;
+  }
 
-.button-group a, .hero-buttons a {
+  /* 3. HERO-BEREICH (STARTSEITE) */
+  /* Bricht das zweispaltige Layout (Slogan links, VSA-Karte rechts) auf */
+  .hero .container, 
+  .main-content, 
+  main {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 40px 20px !important;
+  }
+
+  h1, .hero-title {
+    font-size: 2.2rem !important; /* Verkleinert die riesige Überschrift */
+    line-height: 1.2 !important;
+  }
+
+  /* Setzt die gelben/schwarzen Buttons untereinander auf volle Breite */
+  .button-group, .hero-buttons {
+    display: flex !important;
+    flex-direction: column !important;
     width: 100% !important;
-    text-algin: center !important;
- }
-}
+    max-width: 320px !important;
+    margin: 20px auto 0 auto !important;
+    gap: 12px !important;
+  }
 
+  .button-group a, .hero-buttons a, .btn {
+    width: 100% !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 4. SEKTION: "Wofür steht die VSA?" & "Unsere Ziele" */
+  /* Ändert zweispaltige Textabschnitte in eine saubere, vertikale Ansicht */
+  .about-section, .goals-section, .section-split {
+    flex-direction: column !important;
+    text-align: left !important;
+    padding: 30px 20px !important;
+  }
+
+  .about-left, .about-right, .goals-left, .goals-right {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 20px !important;
+  }
+
+  /* 5. RASTER & KARTEN ("Was uns wichtig ist" & "Neuigkeiten") */
+  /* Zwingt alle Kachel-Raster (Grid/Flex) in eine einzige Spalte */
+  .grid-container, .cards-container, .news-grid, .topics-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 20px !important;
+    width: 100% !important;
+  }
+
+  /* Setzt die einzelnen Boxen auf die optimale Handy-Breite */
+  .card, .vsa-card, .topic-box, .news-card {
+    width: 100% !important;
+    max-width: 360px !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 6. MITGLIED WERDEN (FORMULAR-BOX) */
+  /* Richtet den Text und die Input-Felder untereinander aus */
+  .join-section .container, .join-box {
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 30px 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .join-left, .join-right, .form-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    text-align: center !important;
+  }
+
+  /* Macht die Eingabefelder ("Name", "Spieler-ID") vollflächig */
+  .join-box input, .form-group input {
+    width: 100% !important;
+    max-width: 320px !important;
+    margin: 8px auto !important;
+    display: block !important;
+  }
+
+  /* 7. FOOTER */
+  footer, .footer-container {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 15px !important;
+    padding: 20px 10px !important;
+  }
+}
