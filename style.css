@@ -791,3 +791,74 @@ nav a:hover {
     padding: 10px !important;
   }
 }
+/* --- GEZIELTE REPARATUR FÜR HELDEN-BEREICH & VORTEILE --- */
+@media (max-width: 768px) {
+
+  /* Fix für den Startseiten-Bereich */
+  .hero-content, 
+  .hero-grid, 
+  .hero-section {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    padding: 0 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  .vsa-card, 
+  .hero-right, 
+  .card-display {
+    width: 100% !important;
+    max-width: 320px !important;
+    position: relative !important;
+    right: auto !important;
+    left: auto !important;
+    margin: 30px auto 0 auto !important;
+    transform: none !important;
+  }
+
+
+  /* RADIKALER FIX FÜR "Wofür steht die VSA?" */
+  /* Findet jede Sektion, die diesen Aufbau nutzt, und zwingt sie in eine Spalte */
+  section, 
+  .features-section, 
+  .party-intro-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding: 20px 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Setzt sowohl den linken Textblock als auch den rechten Kachel-Bereich auf volle Breite */
+  section > div, 
+  .intro-text-block, 
+  .features-grid,
+  .about-left-text {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    margin: 0 auto 20px auto !important;
+    float: none !important; /* Deaktiviert alte Layout-Methoden */
+  }
+
+  /* Richtet die kleinen Kacheln (Sicherheit, Wirtschaft, Gerechtigkeit, Zusammenhalt) sauber untereinander aus */
+  section > div > div, 
+  .feature-item, 
+  .value-box, 
+  .about-card {
+    width: 100% !important;
+    max-width: 320px !important;
+    text-align: center !important;
+    margin: 15px auto !important;
+    padding: 10px !important;
+    border-left: none !important;
+    box-sizing: border-box !important;
+  }
+}
