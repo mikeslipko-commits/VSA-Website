@@ -584,3 +584,13 @@ nav a:hover {
     color: rgba(255, 255, 255, 0.7) !important;
     opacity: 1; /* Sorgt dafür, dass der Browser das Weiß nicht automatisch blasser macht */
 }
+
+/* Macht den kleinen Einleitungstext ("Du möchtest dich aktiv...") weiß */
+.join-text {
+    color: #ffffff !important;
+}
+
+/* Falls die KI dort einen normalen Absatz-Tag verwendet hat, machen wir den auch weiß */
+.join-text p {
+    color: #e0e0e0 !important; /* Ein edles, leicht mattes Weiß für den langen Text */
+}
